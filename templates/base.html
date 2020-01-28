@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    {#  Define base structure of app:                                   #}
+    {#                                top-of-page menu,                 #}
+    {#                                content (could be map)            #}
+    {#                                footer with copyright notice      #}
+    {# Parameters: expects title to be defined, falls back if not       #}
+    {# #}
+    {# Note: expects extending templates to define 'content' block #}
+    {#       expects extending template rendering to define parameters:  #}
+    {# 'hdr_txt', holding styles for leaflet #}
+    {# 'script_txt', holding JS scripts for leaflet #}
+        
+
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+        {% if title %}
+        <title>{{ title }} </title>
+        {% else %}
+        <title>Folium Example</title>
+        {% endif %}
+    
+        {{ hdr_txt  }}
+        
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <h1 class="logo">Web Mapping:</h1>
+                <ul class="menu">
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('crashmap') }}">Maps</a></li>
+                </ul>
+            </div>
+        </header>
+        <hr/>
+        {% block content %}
+        {% endblock %}
+    
+        <div id="footer">
+            <span class="tiny">
+                Copyright © Don Cameron, 2019. www.net-analysis.com
+            </span>
+        </div>
+    </body>  
+    {# Note: script_txt MUST follow the body, so that div ids are defined to be referenced in the scripts #}
+    <script>
+        {{ script_txt }}
+    </script>
+</html>

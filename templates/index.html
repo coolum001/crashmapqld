@@ -1,0 +1,31 @@
+{# Define home / index page for app #}
+{% extends 'base.html' %}
+
+{% block content %}
+    <hr/>
+    <h1> Queensland Road Crash Mapping </h1>
+    <p>Welcome to the Queensland Road Crash Mapping Application</p>
+    <p>Click "Home" on the menu bar at any time to return to this page, else click 
+        on the "Map" menu item to display a map of fatal road crash locations for Queensland. 
+    </p>
+    <p>The data was sourced from the Queensland Government Open Data Portal:  </p>
+        <blockquote>
+        "This dataset shows the position of vehicular crash incidents in Queensland. 
+        This includes fatalities, injuries and vehicular damage. 
+        The point of truth for this dataset is the Queensland government open data website 
+        https://data.qld.gov.au/dataset/crash-data-from-queensland-roads"
+        </blockquote>
+
+    <p>Generating the map may take a few seconds, so please be patient.  
+        Once the map is loaded and displayed, you can pan and zoom,
+        and turn on or off the basemap, and the various depictions of the fatal crash data.  
+        Holding that mouse pointer over a red circle crash marker (hovering) will show the number of deaths in the crash; 
+        clicking on a crash marker will show more details about the crash.
+    </p>  
+    <p><em>Important Note:  This application cannot display the human suffering and misery that each road crash can entail.
+        Please be careful when driving.</em></p>
+
+    <p><small>Mapping Software Version (Folium): {{ folium_version }}</small></p>
+{% endblock %}
+    
+

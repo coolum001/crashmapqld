@@ -1,0 +1,13 @@
+{# define content block holding folium / leaflet map #}
+{# expects renderers to define a parameter 'map_div' #}
+
+{% extends 'base.html' %}
+
+{% block content %}
+<hr/>
+
+<h1> Queensland Road Crash Map </h1>
+{#  Map goes here                                  #}
+{{ map_div }}
+<hr/>
+{% endblock %}
