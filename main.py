@@ -18,6 +18,18 @@ app = Flask(__name__)
 # will hold fatal crash data
 fatal = None
 
+# will hold fatal crash map
+folium_map = None
+
+# definition of map in body
+map_div = None
+
+# html to be included in header
+hdr_txt = None
+
+# html to be included in <script>
+script_txt = None
+
 
 def add_heat_map(folium_map: folium.Map) -> None:
     '''
@@ -93,6 +105,7 @@ def add_markers(folium_map: folium.Map) -> None:
             popup=marker_cn,
         )
         circ_mkr.add_to(fatal_fg)
+        
     # end for
 
     # add unclustered markers to map
@@ -134,6 +147,8 @@ def add_clusters(folium_map: folium.Map) -> None:
     # for each fatal crash, add marker to layer
     # marker is translucent so zoom out will look ok
 
+    # Note: crash_type not used in this version
+    
     for marker_y, marker_x, marker_dc, marker_cn, marker_ct in zip(
         lat, lng, dead_count, crash_nature, crash_type
     ):
@@ -160,38 +175,38 @@ def add_clusters(folium_map: folium.Map) -> None:
 
 # end add_clusters
 
-
-@app.route('/')
-def index() -> str:
+def load_crash_data() -> pd.DataFrame:
     '''
-    index: returns home page of example server, with welcoming text
+    load_crash_data: load crash dataset into pandas DataFrame
+
+    Parameters:
+    None
+
+    Returns:
+    Pandas DataFrame
+
+    Side Effects:
+    updates global variable fatal with DataFrame contents
     '''
-    return render_template(
-        'index.html',
-        map_div='',
-        hdr_txt='',
-        script_txt='',
-        title='QLD Crash Map',
-        folium_version=folium.__version__,
-    )
+    global fatal
+    crash_path = 'locations.csv'
 
+    #  tell pandas that PostCodes are not integers, but strings
+    crashes = pd.read_csv(crash_path, dtype={'Loc_Post_Code': str})
+    fatal = crashes[crashes["Crash_Severity"] == 'Fatal']
 
-# end index
+    return fatal
+# end load_crash
 
-@app.route('/_ah/warmup')
-def warmup():
-    """Warm up an instance of the app."""
-    # load fatal crash data
-    print('data loading ...')
-    load_crash_data()
-    print('data loaded')
-
-
-@app.route('/crashmap')
-def crashmap() -> str:
+def make_crashmap()->None:
     '''
     crashmap: generates a webpage holding a leaflet / folium map
     '''
+    global folium_map
+    global map_div
+    global hdr_txt
+    global script_txt
+
     start_coords = (-26.52, 153.09)
     folium_map = folium.Map(
         tiles=None,
@@ -206,9 +221,11 @@ def crashmap() -> str:
     folium.TileLayer(tiles='OpenStreetMap', name='Open Street Map', show=True).add_to(
         folium_map
     )
+
     folium.TileLayer(tiles='stamentoner', name='Black/White Map', show=False).add_to(
         folium_map
     )
+
 
     # add un-clustered markers layer
     add_markers(folium_map)
@@ -221,6 +238,7 @@ def crashmap() -> str:
 
     # add control to pick basemap, layers to show
     folium.LayerControl().add_to(folium_map)
+
 
     # Extract the components of the web map
 
@@ -243,6 +261,51 @@ def crashmap() -> str:
     # html to be included in <script>
     script_txt = Markup(folium_map.get_root().script.render())
 
+    return None
+
+#end make_crashmap
+
+def startup():
+    '''
+    startup: load crash data from CSV file, make folium map
+    '''
+    load_crash_data()
+    make_crashmap()
+#end startup
+
+# perform app initialization
+startup()
+
+
+@app.route('/')
+def index() -> str:
+    '''
+    index: returns home page of example server, with welcoming text
+    '''
+
+
+    return render_template(
+        'index.html',
+        map_div='',
+        hdr_txt='',
+        script_txt='',
+        title='QLD Crash Map',
+        folium_version=folium.__version__,
+    )
+
+
+# end index
+
+@app.route('/crashmap')
+def crashmap() -> str:
+    '''
+    crashmap: generates a webpage holding a leaflet / folium map
+    '''
+
+    global map_div
+    global hdr_txt
+    global script_txt
+
     return render_template(
         'crashmap.html',
         map_div=map_div,
@@ -255,35 +318,6 @@ def crashmap() -> str:
 # end crashmap
 
 
-def load_crash_data() -> pd.DataFrame:
-    '''
-    load_crash_data: load crash dataset into pandas DataFrame
-
-    Parameters:
-    None
-
-    Returns:
-    Pandas DataFrame
-
-    Side Effects:
-    updates global variable fatal with DataFrame contents
-    '''
-    global fatal
-    crash_path = 'locations.csv'
-
-    #  tell pandas that PostCodes are not integers, but strings
-    crashes = pd.read_csv(crash_path, dtype={'Loc_Post_Code': str})
-    fatal = crashes[crashes["Crash_Severity"] == 'Fatal']
-
-    return fatal
-
-
-# end load_crash
 
 if __name__ == '__main__':
-    # load fatal crash data
-    print('data loading ...')
-    load_crash_data()
-    print('data loaded')
-
     app.run(host='127.0.0.1', port=8080)
